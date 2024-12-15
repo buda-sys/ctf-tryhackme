@@ -5,7 +5,7 @@
 Comenzamos con la fase de escaneo de puertos utilizando la herramienta `nmap`:
 
 ```bash
-nmap -sS -p- <IP-OBJETIVO>
+nmap -p- --open -n -Pn --min-rate 5000 -sCV -sS <IP-OBJETIVO> -oN <NOMBRE> -vvv
 ```
 
 ![Escaneo Nmap](imagenesb/bakugo1.png)
