@@ -144,7 +144,7 @@ ssh usuario@<IP-OBJETIVO>
 Identificamos que el usuario puede ejecutar un script con privilegios elevados. Modificamos el archivo `sudoers` para agregar nuestro usuario con privilegios de superusuario:
 
 ```bash
-sudo visudo
+deku ALL=NOPASSWD: ALL >> /etc/sudoers
 ```
 
 Finalmente, obtenemos acceso como **root** y la segunda bandera.
