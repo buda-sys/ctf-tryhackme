@@ -63,6 +63,8 @@ Utilizamos las credenciales para acceder al panel de WordPress y comenzamos a bu
 
 ![Panel de WordPress](images/robots9.png)
 
+### acceso por medio de fuerza bruta 
+
 ### 4. Investigación Adicional
 
 Antes de continuar, investigamos más información sobre la máquina. Descubrimos que está relacionada con una serie de televisión donde el protagonista es un hacker llamado *Elliot*. Esto sugiere que el nombre de usuario podría ser "Elliot".
