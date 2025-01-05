@@ -124,7 +124,7 @@ export SUDO_EDITOR='nano -- /etc/sudoers'
 sudoedit /etc/nginx/sites-available/admin.cyprusbank.thm
 ```
 
-Agregamos el siguiente texto al archivo `sudoers`:
+le damos todos los permisos a el  usuario web  en `sudoers`:
 
 ```plaintext
 web ALL:(ALL:ALL) NOPASSWD: ALL
