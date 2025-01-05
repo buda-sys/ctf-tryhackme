@@ -31,7 +31,7 @@ http://creative.thm [200 OK] Bootstrap, Country[RESERVED][ZZ], Email[info@exampl
 
 Revisando el protocolo HTTP encontramos una página web:
 
-![Página Creativo](creativo.png)
+![Creativo](creativo.png)
 
 ### Enumeración de directorios
 
@@ -49,7 +49,7 @@ ffuf -w /usr/share/wordlists/SecLists/Discovery/DNS/subdomains-top1million-11000
 
 Encontramos el subdominio `beta`. Lo agregamos a `/etc/hosts` y revisamos su contenido. Observamos una página en la URL `beta.creative.thm`, lo que sugiere un posible **SSRF** (Falsificación de Solicitudes del Lado del Servidor).
 
-![Página Beta](creativo2.png)
+![creativo](creativo2.png)
 
 Al ingresar a `http://127.0.0.1`, nos redirige a la página principal de "Creativo". Realizaremos un ataque de fuerza bruta para encontrar posibles puertos internos con `ffuf`.
 
@@ -74,13 +74,13 @@ Resultado:
 
 En el puerto `1337`, encontramos un servidor oculto que tiene un **LFI (Local File Inclusion)**:
 
-![Servidor oculto](creativo3.png)
+![creativo](creativo3.png)
 
 ### Explotación de LFI
 
 Al aprovechar el LFI, encontramos un usuario llamado `saad` y accedemos a su archivo `id_rsa`:
 
-![Archivo id_rsa](creativo5.png)
+![creativo](creativo5.png)
 
 El archivo `id_rsa` está protegido con una contraseña. Utilizamos `ssh2john` para generar un hash y `john the ripper` para crackearlo:
 
