@@ -31,7 +31,7 @@ http://creative.thm [200 OK] Bootstrap, Country[RESERVED][ZZ], Email[info@exampl
 
 Revisando el protocolo HTTP encontramos una página web:
 
-![Creativo](creativo.png)
+![servidor web creativo](Creativo/creativo.png)
 
 ### Enumeración de directorios
 
